@@ -16,6 +16,7 @@ import {
   Search,
   Lightbulb,
 } from "lucide-react";
+import { Textarea } from "@/components/ui/textarea";
 
 interface SearchFormulaWorkflowProps {
   fileName: string;
@@ -40,6 +41,15 @@ interface TemplateOption {
   example: string;
 }
 
+interface PatentItem {
+  id: string;
+  title: string;
+  applicant: string;
+  publicationNumber: string;
+  publicationDate: string;
+  abstract: string;
+}
+
 // 模拟数据
 const mockIPCList: IPCItem[] = [
   { code: "G06F", name: "电数字数据处理", selected: true },
@@ -57,6 +67,37 @@ const mockKeywords: KeywordItem[] = [
   { word: "深度学习", selected: true },
   { word: "神经网络", selected: true },
   { word: "算法", selected: true },
+];
+
+// 模拟专利数据
+const mockPatents: PatentItem[] = [
+  {
+    id: "1",
+    title: "一种基于深度学习的图像识别方法",
+    applicant: "某科技公司",
+    publicationNumber: "CN112345678A",
+    publicationDate: "2023-05-15",
+    abstract:
+      "本发明公开了一种基于深度学习的图像识别方法，包括：获取待识别图像；对所述待识别图像进行预处理；将预处理后的图像输入预先训练好的深度神经网络模型中，得到识别结果。本发明通过深度学习技术，提高了图像识别的准确率和效率。",
+  },
+  {
+    id: "2",
+    title: "机器学习模型训练系统及方法",
+    applicant: "某研究院",
+    publicationNumber: "CN112345679A",
+    publicationDate: "2023-04-20",
+    abstract:
+      "本发明涉及一种机器学习模型训练系统及方法，所述系统包括：数据获取模块，用于获取训练数据；模型构建模块，用于构建机器学习模型；训练模块，用于利用所述训练数据对所述机器学习模型进行训练。本发明能够提高模型训练的效率和模型的性能。",
+  },
+  {
+    id: "3",
+    title: "神经网络优化算法",
+    applicant: "某大学",
+    publicationNumber: "CN112345680A",
+    publicationDate: "2023-03-10",
+    abstract:
+      "本发明提出了一种神经网络优化算法，通过改进的梯度下降法对神经网络的权重进行更新，能够有效避免陷入局部最优解，提高神经网络的收敛速度和泛化能力。",
+  },
 ];
 
 // 完整的 IPC 建议库（用于输入时推荐）
@@ -123,13 +164,18 @@ export function SearchFormulaWorkflow({
   fileName,
   onBack,
 }: SearchFormulaWorkflowProps) {
-  const [step, setStep] = useState<1 | 2>(1);
+  const [step, setStep] = useState<1 | 2 | 3>(1);
   const [ipcList, setIPCList] = useState<IPCItem[]>(mockIPCList);
   const [keywords, setKeywords] = useState<KeywordItem[]>(mockKeywords);
   const [extendedWords, setExtendedWords] =
     useState<KeywordItem[]>(mockExtendedWords);
   const [selectedTemplate, setSelectedTemplate] = useState<string | null>(null);
   const [generatedFormula, setGeneratedFormula] = useState<string>("");
+  const [isSearching, setIsSearching] = useState(false);
+  const [searchResults, setSearchResults] = useState<PatentItem[]>([]);
+  const [originalSearchResults, setOriginalSearchResults] = useState<
+    PatentItem[]
+  >([]);
 
   // Manual input states
   const [showIPCInput, setShowIPCInput] = useState(false);
@@ -267,6 +313,21 @@ export function SearchFormulaWorkflow({
     );
   };
 
+  // Patent search
+  const handleSearch = () => {
+    setIsSearching(true);
+    setTimeout(() => {
+      setSearchResults(mockPatents);
+      setOriginalSearchResults(mockPatents);
+      setIsSearching(false);
+    }, 1500);
+  };
+
+  // Reset search results
+  const handleResetResults = () => {
+    setSearchResults([...originalSearchResults]);
+  };
+
   return (
     <div className="flex h-full flex-col">
       {/* Header */}
@@ -315,18 +376,41 @@ export function SearchFormulaWorkflow({
                 "flex h-8 w-8 items-center justify-center rounded-full text-sm font-medium transition-colors",
                 step === 2
                   ? "bg-primary text-primary-foreground"
-                  : "bg-muted text-muted-foreground",
+                  : step > 2
+                    ? "bg-primary/10 text-primary"
+                    : "bg-muted text-muted-foreground",
               )}
             >
-              2
+              {step > 2 ? <Check className="h-4 w-4" /> : "2"}
             </div>
             <span
               className={cn(
                 "text-sm font-medium",
-                step === 2 ? "text-foreground" : "text-muted-foreground",
+                step >= 2 ? "text-foreground" : "text-muted-foreground",
               )}
             >
               生成检索式
+            </span>
+          </div>
+          <div className="mx-2 h-px w-8 bg-border" />
+          <div className="flex items-center gap-2">
+            <div
+              className={cn(
+                "flex h-8 w-8 items-center justify-center rounded-full text-sm font-medium transition-colors",
+                step === 3
+                  ? "bg-primary text-primary-foreground"
+                  : "bg-muted text-muted-foreground",
+              )}
+            >
+              3
+            </div>
+            <span
+              className={cn(
+                "text-sm font-medium",
+                step === 3 ? "text-foreground" : "text-muted-foreground",
+              )}
+            >
+              检索相关文件
             </span>
           </div>
         </div>
@@ -512,7 +596,7 @@ export function SearchFormulaWorkflow({
               </div>
             </div>
           </div>
-        ) : (
+        ) : step === 2 ? (
           /* Step 2: Generate Formula */
           <div className="mx-auto max-w-5xl space-y-6">
             {/* Template Selection */}
@@ -570,15 +654,81 @@ export function SearchFormulaWorkflow({
                     复制
                   </Button>
                 </div>
-                <div className="rounded-lg bg-accent/50 p-4">
-                  <code className="break-all text-sm text-foreground">
-                    {generatedFormula}
-                  </code>
-                </div>
+                <Textarea
+                  value={generatedFormula}
+                  onChange={(e) => setGeneratedFormula(e.target.value)}
+                  className="min-h-[150px] resize-y font-mono text-sm bg-accent/50 border-border"
+                  placeholder="生成的检索式将显示在这里，支持手动编辑"
+                />
                 <div className="mt-4 rounded-lg bg-primary/5 p-4">
                   <p className="text-sm text-muted-foreground">
                     此检索式已根据您选择的IPC分类、关键词和扩展词自动生成。您可以直接在专利数据库中使用该检索式进行查询。
                   </p>
+                </div>
+              </div>
+            )}
+          </div>
+        ) : (
+          /* Step 3: Search Results */
+          <div className="mx-auto max-w-5xl space-y-6">
+            {isSearching ? (
+              <div className="flex h-[400px] flex-col items-center justify-center space-y-4">
+                <div className="h-12 w-12 animate-spin rounded-full border-4 border-primary border-t-transparent" />
+                <p className="text-muted-foreground">正在检索相关专利文件...</p>
+              </div>
+            ) : (
+              <div className="space-y-6">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-2">
+                    <h3 className="text-lg font-semibold text-foreground">
+                      检索结果 ({searchResults.length})
+                    </h3>
+                    {searchResults.length < originalSearchResults.length && (
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={handleResetResults}
+                        className="h-8 text-xs"
+                      >
+                        重置筛选
+                      </Button>
+                    )}
+                  </div>
+                </div>
+
+                <div className="grid gap-4">
+                  {searchResults.map((patent) => (
+                    <div
+                      key={patent.id}
+                      className="rounded-lg border border-border bg-card p-6 transition-all hover:shadow-md"
+                    >
+                      <div className="flex items-start justify-between">
+                        <div className="flex-1 pr-4">
+                          <div className="mb-2 flex items-center gap-2">
+                            <h4 className="text-lg font-semibold text-foreground">
+                              {patent.title}
+                            </h4>
+                          </div>
+                          <div className="mb-3 flex items-center gap-4 text-sm text-muted-foreground">
+                            <span>{patent.publicationNumber}</span>
+                            <span>{patent.applicant}</span>
+                            <span>{patent.publicationDate}</span>
+                          </div>
+                          <p className="text-sm text-muted-foreground line-clamp-2">
+                            <span className="font-semibold">摘要：</span>
+                            {patent.abstract}
+                          </p>
+                        </div>
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          className="shrink-0 bg-transparent"
+                        >
+                          专利解析
+                        </Button>
+                      </div>
+                    </div>
+                  ))}
                 </div>
               </div>
             )}
@@ -589,14 +739,14 @@ export function SearchFormulaWorkflow({
       {/* Footer Actions */}
       <footer className="flex items-center justify-between border-t border-border bg-card px-6 py-4">
         <div>
-          {step === 2 && (
+          {step > 1 && (
             <Button
               variant="outline"
-              onClick={() => setStep(1)}
+              onClick={() => setStep((s) => (s - 1) as 1 | 2 | 3)}
               className="gap-2 bg-transparent"
             >
               <ArrowLeft className="h-4 w-4" />
-              返回提取关键信息
+              返回上一步
             </Button>
           )}
         </div>
@@ -606,10 +756,20 @@ export function SearchFormulaWorkflow({
               下一步：生成检索式
               <ArrowRight className="h-4 w-4" />
             </Button>
-          ) : (
-            <Button onClick={onBack} disabled={!generatedFormula}>
-              完成
+          ) : step === 2 ? (
+            <Button
+              onClick={() => {
+                setStep(3);
+                handleSearch();
+              }}
+              disabled={!generatedFormula}
+              className="gap-2"
+            >
+              运行检索
+              <ArrowRight className="h-4 w-4" />
             </Button>
+          ) : (
+            <Button onClick={onBack}>完成</Button>
           )}
         </div>
       </footer>

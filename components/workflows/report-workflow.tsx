@@ -19,6 +19,7 @@ import {
   CheckCircle,
   Download,
 } from "lucide-react";
+import { Textarea } from "@/components/ui/textarea";
 
 interface ReportWorkflowProps {
   fileName: string;
@@ -659,11 +660,12 @@ export function ReportWorkflow({ fileName, onBack }: ReportWorkflowProps) {
                       复制
                     </Button>
                   </div>
-                  <div className="rounded-lg bg-background p-4">
-                    <code className="text-sm text-foreground">
-                      {generatedFormula}
-                    </code>
-                  </div>
+                  <Textarea
+                    value={generatedFormula}
+                    onChange={(e) => setGeneratedFormula(e.target.value)}
+                    className="min-h-[100px] resize-y font-mono text-sm bg-background border-border"
+                    placeholder="生成的检索式将显示在这里，支持手动编辑"
+                  />
                 </div>
               )}
             </div>
