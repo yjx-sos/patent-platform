@@ -65,6 +65,9 @@ export function DisclosureWorkflow({
     { id: "1", type: "text", content: "" },
   ]);
   const [isRewriting, setIsRewriting] = useState(false);
+  const [optimizingBlockId, setOptimizingBlockId] = useState<string | null>(
+    null,
+  );
   const [keywords, setKeywords] = useState<KeywordDefinition[]>([]);
   const [aiWarnings, setAIWarnings] = useState<AIWarning[]>([]);
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -146,27 +149,30 @@ export function DisclosureWorkflow({
     }
   };
 
-  // AI 风格化改写
-  const handleAIRewrite = () => {
-    setIsRewriting(true);
+  // 单个文本块 AI 优化
+  const handleOptimizeBlock = (id: string) => {
+    setOptimizingBlockId(id);
     setTimeout(() => {
-      // 模拟 AI 改写
-      const textBlocks = contentBlocks.filter(
-        (b) => b.type === "text" && b.content.trim(),
-      );
-      if (textBlocks.length > 0) {
-        const rewrittenBlocks = contentBlocks.map((block) => {
-          if (block.type === "text" && block.content.trim()) {
+      setContentBlocks((prev) =>
+        prev.map((block) => {
+          if (block.id === id && block.type === "text") {
             return {
               ...block,
               content: `${block.content}\n\n[已优化] 上述技术方案通过创新性的设计，有效解决了现有技术中的关键问题。`,
             };
           }
           return block;
-        });
-        setContentBlocks(rewrittenBlocks);
-      }
+        }),
+      );
+      setOptimizingBlockId(null);
+    }, 1500);
+  };
 
+  // AI 风格化改写
+  const handleAIRewrite = () => {
+    setIsRewriting(true);
+    setTimeout(() => {
+      // 模拟 AI 改写 - 移除文本内容的重复优化，保留关键词生成和警告检查
       // 模拟识别专有词汇
       setKeywords([
         {
@@ -486,16 +492,6 @@ export function DisclosureWorkflow({
                   <h2 className="text-xl font-semibold text-foreground">
                     本发明的技术方案
                   </h2>
-                  <Button
-                    onClick={handleAIRewrite}
-                    disabled={isRewriting}
-                    className="gap-2"
-                  >
-                    <Sparkles
-                      className={cn("h-4 w-4", isRewriting && "animate-pulse")}
-                    />
-                    {isRewriting ? "AI 处理中..." : "AI 优化"}
-                  </Button>
                 </div>
 
                 <p className="mb-4 text-sm text-muted-foreground">
@@ -527,15 +523,37 @@ export function DisclosureWorkflow({
                       </div>
 
                       {block.type === "text" ? (
-                        <textarea
-                          value={block.content}
-                          onChange={(e) =>
-                            updateContentBlock(block.id, e.target.value)
-                          }
-                          placeholder="请输入技术方案的详细描述..."
-                          rows={6}
-                          className="w-full rounded border border-border bg-background px-3 py-2 text-sm text-foreground outline-none transition-colors focus:border-primary resize-none"
-                        />
+                        <div className="relative">
+                          <textarea
+                            value={block.content}
+                            onChange={(e) =>
+                              updateContentBlock(block.id, e.target.value)
+                            }
+                            placeholder="请输入技术方案的详细描述..."
+                            rows={6}
+                            className="w-full resize-none rounded border border-border bg-background px-3 py-2 pb-14 text-sm text-foreground outline-none transition-colors focus:border-primary"
+                          />
+                          <div className="absolute bottom-4 right-2">
+                            <Button
+                              size="sm"
+                              variant="secondary"
+                              className="h-7 gap-1 text-xs"
+                              onClick={() => handleOptimizeBlock(block.id)}
+                              disabled={optimizingBlockId === block.id}
+                            >
+                              <Sparkles
+                                className={cn(
+                                  "h-3 w-3",
+                                  optimizingBlockId === block.id &&
+                                    "animate-pulse",
+                                )}
+                              />
+                              {optimizingBlockId === block.id
+                                ? "优化中..."
+                                : "AI 优化"}
+                            </Button>
+                          </div>
+                        </div>
                       ) : (
                         <div className="space-y-2">
                           {block.imageUrl ? (
@@ -570,22 +588,34 @@ export function DisclosureWorkflow({
                 </div>
 
                 {/* 添加内容块按钮 */}
-                <div className="mt-4 flex gap-2">
+                <div className="mt-4 flex items-center justify-between">
+                  <div className="flex gap-2">
+                    <Button
+                      variant="outline"
+                      onClick={() => addContentBlock("text")}
+                      className="gap-2 bg-transparent"
+                    >
+                      <Plus className="h-4 w-4" />
+                      添加文本
+                    </Button>
+                    <Button
+                      variant="outline"
+                      onClick={() => addContentBlock("image")}
+                      className="gap-2 bg-transparent"
+                    >
+                      <ImageIcon className="h-4 w-4" />
+                      添加图片
+                    </Button>
+                  </div>
                   <Button
-                    variant="outline"
-                    onClick={() => addContentBlock("text")}
-                    className="gap-2 bg-transparent"
+                    onClick={handleAIRewrite}
+                    disabled={isRewriting}
+                    className="gap-2"
                   >
-                    <Plus className="h-4 w-4" />
-                    添加文本
-                  </Button>
-                  <Button
-                    variant="outline"
-                    onClick={() => addContentBlock("image")}
-                    className="gap-2 bg-transparent"
-                  >
-                    <ImageIcon className="h-4 w-4" />
-                    添加图片
+                    <Sparkles
+                      className={cn("h-4 w-4", isRewriting && "animate-pulse")}
+                    />
+                    {isRewriting ? "AI 处理中..." : "AI 优化"}
                   </Button>
                 </div>
               </div>
