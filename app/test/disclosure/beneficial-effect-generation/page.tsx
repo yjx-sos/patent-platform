@@ -3,7 +3,6 @@
 import { useState } from "react";
 import { useCompletion } from "@ai-sdk/react";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import {
@@ -17,7 +16,7 @@ import { Sparkles, Copy, Eraser } from "lucide-react";
 import { toast } from "sonner";
 import ReactMarkdown from "react-markdown";
 
-export default function TechnicalEffectGenerationPage() {
+export default function BeneficialEffectGenerationPage() {
   const [technicalBackground, setTechnicalBackground] = useState(
     "随着区块链技术的快速发展，供应链金融领域对数据存证的需求日益增长。现有技术中，虽然已有多种解决方案，但仍存在以下问题：\n\n1. 数据易被篡改：中心化数据库存在单点故障风险，数据安全性不足；\n2. 信任成本高：多方协作需要建立复杂的信任机制；\n3. 隐私保护不足：敏感数据在传输和存储过程中存在泄露风险。",
   );
@@ -27,11 +26,11 @@ export default function TechnicalEffectGenerationPage() {
 
   const { completion, complete, isLoading, stop, setCompletion } =
     useCompletion({
-      api: "/api/disclosure/technical-effect-generation",
+      api: "/api/disclosure/beneficial-effect-generation",
       streamProtocol: "text",
       onFinish: () => {
         toast.success("生成完成", {
-          description: "技术效果已成功生成",
+          description: "有益效果已成功生成",
         });
       },
       onError: (error: Error) => {
@@ -43,7 +42,7 @@ export default function TechnicalEffectGenerationPage() {
     });
 
   const handleGenerate = async () => {
-    if (!technicalBackground || !technicalSolution) {
+    if (!technicalBackground.trim() || !technicalSolution.trim()) {
       toast.error("缺少必要信息", {
         description: "请填写技术背景和技术方案",
       });
@@ -58,14 +57,25 @@ export default function TechnicalEffectGenerationPage() {
         },
       });
     } catch (error) {
+      console.error("生成失败:", error);
+      toast.error("生成失败", {
+        description: "请稍后重试",
+      });
     }
   };
 
-  const handleCopy = () => {
-    navigator.clipboard.writeText(completion);
-    toast.success("已复制", {
-      description: "内容已复制到剪贴板",
-    });
+  const handleCopy = async () => {
+    try {
+      await navigator.clipboard.writeText(completion);
+      toast.success("已复制", {
+        description: "内容已复制到剪贴板",
+      });
+    } catch (error) {
+      console.error("复制失败:", error);
+      toast.error("复制失败", {
+        description: "请手动复制内容",
+      });
+    }
   };
 
   const handleClear = () => {
@@ -75,22 +85,10 @@ export default function TechnicalEffectGenerationPage() {
     setCompletion("");
   };
 
-  const parseCompletion = (text: string) => {
-    const beneficialEffectsMatch = text.match(/## 有益效果\s*\n([\s\S]*?)(?=## 技术关键点和欲保护点|$)/);
-    const protectionPointsMatch = text.match(/## 技术关键点和欲保护点\s*\n([\s\S]*?)$/);
-
-    return {
-      beneficialEffects: beneficialEffectsMatch ? beneficialEffectsMatch[1].trim() : "",
-      protectionPoints: protectionPointsMatch ? protectionPointsMatch[1].trim() : "",
-    };
-  };
-
-  const { beneficialEffects, protectionPoints } = parseCompletion(completion);
-
   return (
     <div className="flex flex-1 flex-col gap-4 p-4 pt-0 max-w-6xl mx-auto w-full h-[calc(100vh-6rem)]">
       <div className="flex items-center justify-between space-y-2 mb-2">
-        <h2 className="text-3xl font-bold tracking-tight">“有益效果”和“预保护点”生成</h2>
+        <h2 className="text-3xl font-bold tracking-tight">“有益效果”生成</h2>
         <Button variant="outline" onClick={handleClear} disabled={isLoading}>
           <Eraser className="mr-2 h-4 w-4" />
           清空重置
@@ -103,7 +101,7 @@ export default function TechnicalEffectGenerationPage() {
           <CardHeader>
             <CardTitle>输入信息</CardTitle>
             <CardDescription>
-              提供技术背景和技术方案，AI 将为您生成专业的有益效果和技术关键点。
+              提供技术背景和技术方案，AI 将为您生成专业的有益效果。
             </CardDescription>
           </CardHeader>
           <CardContent className="space-y-4 flex-1 overflow-y-auto">
@@ -134,7 +132,7 @@ export default function TechnicalEffectGenerationPage() {
                 disabled={isLoading}
               />
               <p className="text-xs text-muted-foreground">
-                提示：技术方案描述越详细，生成的有益效果和技术关键点越准确。
+                提示：技术方案描述越详细，生成的有益效果越准确。
               </p>
             </div>
 
@@ -161,67 +159,34 @@ export default function TechnicalEffectGenerationPage() {
         </Card>
 
         {/* 右侧：输出区域 */}
-        <div className="flex flex-col gap-4 h-full">
-          {/* 有益效果 */}
-          <Card className="flex-1 flex flex-col bg-muted/30">
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle>有益效果</CardTitle>
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={handleCopy}
-                disabled={!beneficialEffects || isLoading}
-              >
-                <Copy className="h-4 w-4 mr-2" />
-                复制
-              </Button>
-            </CardHeader>
-            <CardContent className="flex-1 p-6 pt-2">
-              <div className="h-full rounded-md border bg-background p-4 overflow-y-auto shadow-sm">
-                {beneficialEffects ? (
-                  <div className="prose prose-sm max-w-none dark:prose-invert leading-relaxed">
-                    <ReactMarkdown>{beneficialEffects}</ReactMarkdown>
-                  </div>
-                ) : (
-                  <div className="h-full flex flex-col items-center justify-center text-muted-foreground space-y-4 opacity-50">
-                    <Sparkles className="h-12 w-12" />
-                    <p>在左侧填写信息并点击生成...</p>
-                  </div>
-                )}
-              </div>
-            </CardContent>
-          </Card>
-
-          {/* 技术关键点和欲保护点 */}
-          <Card className="flex-1 flex flex-col bg-muted/30">
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle>技术关键点和欲保护点</CardTitle>
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={handleCopy}
-                disabled={!protectionPoints || isLoading}
-              >
-                <Copy className="h-4 w-4 mr-2" />
-                复制
-              </Button>
-            </CardHeader>
-            <CardContent className="flex-1 p-6 pt-2">
-              <div className="h-full rounded-md border bg-background p-4 overflow-y-auto shadow-sm">
-                {protectionPoints ? (
-                  <div className="prose prose-sm max-w-none dark:prose-invert leading-relaxed">
-                    <ReactMarkdown>{protectionPoints}</ReactMarkdown>
-                  </div>
-                ) : (
-                  <div className="h-full flex flex-col items-center justify-center text-muted-foreground space-y-4 opacity-50">
-                    <Sparkles className="h-12 w-12" />
-                    <p>在左侧填写信息并点击生成...</p>
-                  </div>
-                )}
-              </div>
-            </CardContent>
-          </Card>
-        </div>
+        <Card className="flex flex-col h-full bg-muted/30">
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle>有益效果</CardTitle>
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={handleCopy}
+              disabled={!completion || isLoading}
+            >
+              <Copy className="h-4 w-4 mr-2" />
+              复制
+            </Button>
+          </CardHeader>
+          <CardContent className="flex-1 p-6 pt-2">
+            <div className="h-full rounded-md border bg-background p-4 overflow-y-auto shadow-sm">
+              {completion ? (
+                <div className="prose prose-sm max-w-none dark:prose-invert leading-relaxed">
+                  <ReactMarkdown>{completion}</ReactMarkdown>
+                </div>
+              ) : (
+                <div className="h-full flex flex-col items-center justify-center text-muted-foreground space-y-4 opacity-50">
+                  <Sparkles className="h-12 w-12" />
+                  <p>在左侧填写信息并点击生成...</p>
+                </div>
+              )}
+            </div>
+          </CardContent>
+        </Card>
       </div>
     </div>
   );

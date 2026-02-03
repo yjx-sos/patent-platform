@@ -76,33 +76,38 @@ export default function BackgroundGenerationPage() {
         if (data.keywords && Array.isArray(data.keywords)) {
           return (
             <div className="overflow-hidden rounded border border-border">
-                <table className="w-full text-sm">
-                  <thead className="bg-accent/50">
-                    <tr>
-                      <th className="border-b border-border px-3 py-1.5 text-left font-medium w-1/4">
-                        术语
-                      </th>
-                      <th className="border-b border-border px-3 py-1.5 text-left font-medium">
-                        释义
-                      </th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {data.keywords.map(
-                      (
-                        item: { term: string; explanation: string },
-                        index: number,
-                      ) => (
-                        <tr key={index} className="border-b border-border last:border-0">
-                          <td className="px-3 py-1.5 align-top font-medium">{item.term}</td>
-                          <td className="px-3 py-1.5 text-muted-foreground">
-                            {item.explanation}
-                          </td>
-                        </tr>
-                      ),
-                    )}
-                  </tbody>
-                </table>
+              <table className="w-full text-sm">
+                <thead className="bg-accent/50">
+                  <tr>
+                    <th className="border-b border-border px-3 py-1.5 text-left font-medium w-1/4">
+                      术语
+                    </th>
+                    <th className="border-b border-border px-3 py-1.5 text-left font-medium">
+                      释义
+                    </th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {data.keywords.map(
+                    (
+                      item: { term: string; explanation: string },
+                      index: number,
+                    ) => (
+                      <tr
+                        key={index}
+                        className="border-b border-border last:border-0"
+                      >
+                        <td className="px-3 py-1.5 align-top font-medium">
+                          {item.term}
+                        </td>
+                        <td className="px-3 py-1.5 text-muted-foreground">
+                          {item.explanation}
+                        </td>
+                      </tr>
+                    ),
+                  )}
+                </tbody>
+              </table>
             </div>
           );
         }
