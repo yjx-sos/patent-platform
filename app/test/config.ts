@@ -22,6 +22,11 @@ export const testConfig: TestMenuItem[] = [
         url: "/test/disclosure/background-generation",
         icon: Type,
       },
+      {
+        title: "关键词解释",
+        url: "/test/disclosure/explanation-of-keywords",
+        icon: Search,
+      },
     ],
   },
   {
