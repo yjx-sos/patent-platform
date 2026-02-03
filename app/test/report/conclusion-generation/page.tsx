@@ -19,11 +19,11 @@ export default function ConclusionGenerationPage() {
   const [loading, setLoading] = useState(false);
   const [result, setResult] = useState<string>('');
 
-  const [searchTopic, setSearchTopic] = useState("电动汽车电池热管理技术");
-  const [searchResults, setSearchResults] = useState("检索到相关专利150篇，其中发明专利120篇，实用新型30篇");
-  const [keyPatentAnalysis, setKeyPatentAnalysis] = useState("核心专利主要分布在特斯拉、宁德时代等公司，关键技术包括液冷系统、相变材料等");
-  const [patentMap, setPatentMap] = useState("技术分布集中在热管理控制系统、冷却介质、电池包结构");
-  const [innovationAssessment, setInnovationAssessment] = useState("目标技术具有中等创新性，存在一定的专利壁垒");
+  const [searchTopic, setSearchTopic] = useState(process.env.NODE_ENV === 'development' ? "电动汽车电池热管理技术" : "");
+  const [searchResults, setSearchResults] = useState(process.env.NODE_ENV === 'development' ? "检索到相关专利150篇，其中发明专利120篇，实用新型30篇" : "");
+  const [keyPatentAnalysis, setKeyPatentAnalysis] = useState(process.env.NODE_ENV === 'development' ? "核心专利主要分布在特斯拉、宁德时代等公司，关键技术包括液冷系统、相变材料等" : "");
+  const [patentMap, setPatentMap] = useState(process.env.NODE_ENV === 'development' ? "技术分布集中在热管理控制系统、冷却介质、电池包结构" : "");
+  const [innovationAssessment, setInnovationAssessment] = useState(process.env.NODE_ENV === 'development' ? "目标技术具有中等创新性，存在一定的专利壁垒" : "");
 
   async function testConclusionGeneration() {
     if (!searchTopic || !searchResults || !keyPatentAnalysis) {
@@ -95,7 +95,7 @@ export default function ConclusionGenerationPage() {
   };
 
   return (
-    <div className="flex flex-1 flex-col gap-4 p-4 pt-0 max-w-6xl mx-auto w-full h-[calc(100vh-6rem)]">
+    <div className="flex flex-1 flex-col gap-4 p-4 pt-0 max-w-6xl mx-auto w-full min-h-[calc(100vh-6rem)]">
       <div className="flex items-center justify-between space-y-2 mb-2">
         <h2 className="text-3xl font-bold tracking-tight">报告结论生成</h2>
         <Button variant="outline" onClick={handleClear} disabled={loading}>
