@@ -51,4 +51,15 @@ export const testConfig: TestMenuItem[] = [
       // 预留位置，暂时为空，或者可以加一个待开发的页面
     ],
   },
+  {
+    title: "专利检索报告",
+    icon: FileText,
+    items: [
+      {
+        title: "报告结论生成",
+        url: "/test/report/conclusion-generation",
+        icon: FileOutput,
+      },
+    ],
+  },
 ];
