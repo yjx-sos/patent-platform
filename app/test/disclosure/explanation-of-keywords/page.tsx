@@ -75,20 +75,34 @@ export default function BackgroundGenerationPage() {
         const data = JSON.parse(completion);
         if (data.keywords && Array.isArray(data.keywords)) {
           return (
-            <div className="space-y-4">
-              {data.keywords.map(
-                (
-                  item: { term: string; explanation: string },
-                  index: number,
-                ) => (
-                  <div key={index} className="border-b pb-2 last:border-0">
-                    <h3 className="font-semibold text-primary">{item.term}</h3>
-                    <p className="text-sm text-muted-foreground mt-1">
-                      {item.explanation}
-                    </p>
-                  </div>
-                ),
-              )}
+            <div className="overflow-hidden rounded border border-border">
+                <table className="w-full text-sm">
+                  <thead className="bg-accent/50">
+                    <tr>
+                      <th className="border-b border-border px-3 py-1.5 text-left font-medium w-1/4">
+                        术语
+                      </th>
+                      <th className="border-b border-border px-3 py-1.5 text-left font-medium">
+                        释义
+                      </th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {data.keywords.map(
+                      (
+                        item: { term: string; explanation: string },
+                        index: number,
+                      ) => (
+                        <tr key={index} className="border-b border-border last:border-0">
+                          <td className="px-3 py-1.5 align-top font-medium">{item.term}</td>
+                          <td className="px-3 py-1.5 text-muted-foreground">
+                            {item.explanation}
+                          </td>
+                        </tr>
+                      ),
+                    )}
+                  </tbody>
+                </table>
             </div>
           );
         }
@@ -98,8 +112,8 @@ export default function BackgroundGenerationPage() {
     }
 
     return (
-      <div className="prose prose-sm max-w-none dark:prose-invert leading-relaxed break-words whitespace-pre-wrap">
-        {completion}
+      <div className="prose prose-sm max-w-none dark:prose-invert leading-relaxed">
+        <ReactMarkdown>{completion}</ReactMarkdown>
       </div>
     );
   };
@@ -126,19 +140,18 @@ export default function BackgroundGenerationPage() {
           <CardHeader>
             <CardTitle>输入信息</CardTitle>
             <CardDescription>
-              提供发明的基本信息和现有技术的痛点，AI
-              将为您生成专业的背景技术描述。
+              提供发明的技术方案，AI 将为您提取关键术语并进行解释。
             </CardDescription>
           </CardHeader>
           <CardContent className="space-y-4 flex-1 overflow-y-auto">
-            <div className="space-y-2 h-full flex flex-col">
+            <div className="space-y-2">
               <Label htmlFor="techSolution">
                 技术方案 <span className="text-red-500">*</span>
               </Label>
               <Textarea
                 id="techSolution"
                 placeholder="请输入详细的技术方案描述..."
-                className="flex-1 resize-none"
+                className="h-[400px] resize-none"
                 value={techSolution}
                 onChange={(e) => setTechSolution(e.target.value)}
                 disabled={isLoading}
@@ -185,7 +198,7 @@ export default function BackgroundGenerationPage() {
             </Button>
           </CardHeader>
           <CardContent className="flex-1 p-6 pt-2">
-            <div className="h-full rounded-md border bg-background p-4 overflow-y-auto shadow-sm">
+            <div className="h-full rounded-md border bg-background p-0 overflow-y-auto shadow-sm">
               {completion ? (
                 renderCompletion()
               ) : (
