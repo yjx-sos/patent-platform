@@ -27,6 +27,16 @@ export const testConfig: TestMenuItem[] = [
         url: "/test/disclosure/proposal-text-optimization",
         icon: Sparkles,
       },
+      {
+        title: "有益效果生成",
+        url: "/test/disclosure/beneficial-effect-generation",
+        icon: Sparkles,
+      },
+      {
+        title: "预保护点生成",
+        url: "/test/disclosure/pre-protection-point-generation",
+        icon: Sparkles,
+      },
     ],
   },
   {
