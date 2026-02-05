@@ -3,14 +3,7 @@
 import React from "react";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
-import {
-  Plus,
-  X,
-  ImageIcon,
-  Sparkles,
-  AlertTriangle,
-  BookOpen,
-} from "lucide-react";
+import { Plus, X, ImageIcon, Sparkles, BookOpen, RefreshCw } from "lucide-react";
 import type { ContentBlock, KeywordDefinition, AIWarning } from "../types";
 
 interface Step3TechSolutionProps {
@@ -29,8 +22,9 @@ interface Step3TechSolutionProps {
     e: React.ChangeEvent<HTMLInputElement>,
   ) => void;
   handleOptimizeBlock: (id: string) => void;
+  handleRedetectImage: (id: string) => void; // 新增：重新检测图片
   handleAIRewrite: () => void;
-  extractKeywords: () => void; // 新增
+  extractKeywords: () => void;
   addKeyword: () => void;
   updateKeyword: (
     index: number,
@@ -53,8 +47,9 @@ export function Step3TechSolution({
   deleteContentBlock,
   handleImageUpload,
   handleOptimizeBlock,
+  handleRedetectImage,
   handleAIRewrite,
-  extractKeywords, // 新增
+  extractKeywords,
   addKeyword,
   updateKeyword,
   deleteKeyword,
@@ -125,23 +120,94 @@ export function Step3TechSolution({
                   </div>
                 </div>
               ) : (
-                <div className="space-y-2">
-                  {block.imageUrl ? (
-                    <div className="relative">
+                <div className="space-y-4">
+                  {block.isDetecting ? (
+                    <div className="flex flex-col items-center justify-center py-8">
+                      <div className="mb-2 h-8 w-8 animate-spin rounded-full border-2 border-primary border-t-transparent"></div>
+                      <p className="text-sm text-muted-foreground">
+                        正在检测图片...
+                      </p>
+                    </div>
+                  ) : block.imageUrl ? (
+                    <div className="space-y-3">
                       <img
                         src={block.imageUrl || "/placeholder.svg"}
                         alt={block.content}
-                        className="max-h-64 rounded-lg object-contain"
+                        className="max-h-64 w-full rounded-lg object-contain"
                       />
-                      <p className="mt-2 text-sm text-muted-foreground">
-                        {block.content}
-                      </p>
+                      
+                      {/* 图片检测结果 */}
+                      {block.detectionResult && (
+                        <div className={cn(
+                          "rounded-lg border p-3",
+                          block.detectionResult.pass 
+                            ? "border-green-500/50 bg-green-500/10" 
+                            : "border-red-500/50 bg-red-500/10"
+                        )}>
+                          <div className="flex items-center justify-between mb-1">
+                            <div className="flex items-center gap-2">
+                              {block.detectionResult.pass ? (
+                                <>
+                                  <div className="h-3 w-3 rounded-full bg-green-500"></div>
+                                  <span className="text-sm font-medium text-green-700 dark:text-green-400">
+                                    图片检测通过
+                                  </span>
+                                </>
+                              ) : (
+                                <>
+                                  <div className="h-3 w-3 rounded-full bg-red-500"></div>
+                                  <span className="text-sm font-medium text-red-700 dark:text-red-400">
+                                    图片检测未通过
+                                  </span>
+                                </>
+                              )}
+                            </div>
+                            <Button
+                              size="sm"
+                              variant="ghost"
+                              className="h-6 px-2 text-xs"
+                              onClick={() => handleRedetectImage(block.id)}
+                            >
+                              <RefreshCw className="h-3 w-3 mr-1" />
+                              重新检测
+                            </Button>
+                          </div>
+                          <p className="text-xs text-muted-foreground mt-1">
+                            {block.detectionResult.reason}
+                          </p>
+                          <div className="mt-2 flex gap-4 text-xs">
+                            <span className={cn(
+                              block.detectionResult.isWhiteBackground
+                                ? "text-green-600"
+                                : "text-red-600"
+                            )}>
+                              背景: {block.detectionResult.isWhiteBackground ? "白色" : "非白色"}
+                            </span>
+                            <span className={cn(
+                              block.detectionResult.isBlackLines
+                                ? "text-green-600"
+                                : "text-red-600"
+                            )}>
+                              线条: {block.detectionResult.isBlackLines ? "黑色" : "非黑色"}
+                            </span>
+                          </div>
+                        </div>
+                      )}
+                      
+                      {/* 图片描述输入框 */}
+                      <input
+                        type="text"
+                        value={block.content}
+                        onChange={(e) => updateContentBlock(block.id, e.target.value)}
+                        placeholder="请输入图片描述..."
+                        className="w-full rounded border border-border bg-background px-3 py-2 text-sm text-foreground outline-none transition-colors focus:border-primary"
+                      />
                     </div>
                   ) : (
                     <label className="flex cursor-pointer flex-col items-center justify-center rounded-lg border-2 border-dashed border-border py-8 transition-colors hover:border-primary">
                       <ImageIcon className="mb-2 h-8 w-8 text-muted-foreground" />
                       <span className="text-sm text-muted-foreground">
-                        点击上传图片
+                        点击上传图片（将自动检测是否符合专利要求）
                       </span>
                       <input
                         type="file"
@@ -197,6 +263,39 @@ export function Step3TechSolution({
               />
               {isRewriting ? "AI 处理中..." : "AI 优化全部"}
             </Button>
+          </div>
+        </div>
+      </div>
+
+      {aiWarnings.length > 0 && (
+        <div className="rounded-lg border border-amber-500/50 bg-amber-500/10 p-4">
+          <div className="mb-2 flex items-center gap-2">
+            <span className="h-5 w-5 rounded-full bg-amber-500 flex items-center justify-center">
+              <span className="text-white text-xs font-bold">!</span>
+            </span>
+            <h3 className="font-medium text-amber-700 dark:text-amber-400">
+              AI 检测到以下问题
+            </h3>
+          </div>
+          <ul className="space-y-1">
+            {aiWarnings.map((warning, index) => (
+              <li
+                key={index}
+                className="flex items-start gap-2 text-sm text-amber-700 dark:text-amber-400"
+              >
+                <span className="mt-1 h-1.5 w-1.5 rounded-full bg-amber-600 flex-shrink-0" />
+                {warning.message}
+              </li>
+            ))}
+          </ul>
+        </div>
+      )}
+
+      <div className="rounded-lg border border-border bg-card p-6">
+        <div className="mb-4 flex items-center justify-between">
+          <div className="flex items-center gap-2">
+            <BookOpen className="h-5 w-5 text-primary" />
+            <h3 className="font-semibold text-foreground">关键词表</h3>
           </div>
           <Button
             variant="ghost"
@@ -267,13 +366,11 @@ export function Step3TechSolution({
         ) : (
           <div className="flex flex-col items-center justify-center rounded-lg border border-dashed border-border py-8 text-center">
             <p className="text-sm text-muted-foreground">
-              暂无关键词，点击右上角添加或等待 AI 自动生成
+              暂无关键词，点击"提取关键词"按钮或等待 AI 自动生成
             </p>
           </div>
         )}
       </div>
-
-      {/* ... 关键词表部分保持不变 ... */}
     </div>
   );
 }
