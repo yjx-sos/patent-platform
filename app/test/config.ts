@@ -3,11 +3,11 @@ import {
   Search,
   Type,
   FileOutput,
-  FileSearch,
   Tag,
   Sparkles,
   Image,
   Binary,
+  MessageSquare,
 } from "lucide-react";
 
 export interface TestMenuItem {
@@ -77,6 +77,17 @@ export const testConfig: TestMenuItem[] = [
         title: "关键词聚类",
         url: "/test/report/keyword-clustering",
         icon: Tag,
+      },
+    ],
+  },
+  {
+    title: "专利知识问答",
+    icon: MessageSquare,
+    items: [
+      {
+        title: "专利知识问答助手",
+        url: "/test/qa",
+        icon: MessageSquare,
       },
     ],
   },
